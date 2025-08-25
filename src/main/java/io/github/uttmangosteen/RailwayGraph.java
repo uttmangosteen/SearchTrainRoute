@@ -27,11 +27,11 @@ public class RailwayGraph {
         stationMap.put(stationID, new HashSet<>());
     }
 
-    public void printGraph() {
-        for (int key : stationMap.keySet()) {
-            System.out.println(key + " -> " + stationMap.get(key));
-        }
-    }
+//    public void printGraph() {
+//        for (int key : stationMap.keySet()) {
+//            System.out.println(key + " -> " + stationMap.get(key));
+//        }
+//    }
 }
 
 class Rail {
