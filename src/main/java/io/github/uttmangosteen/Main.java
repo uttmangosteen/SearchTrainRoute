@@ -16,18 +16,17 @@ public class Main {
         while (sc.hasNextLine()) {
             String[] input = sc.nextLine().split(",");
 
-            //超適当
+            //適当
             if (input.length != 3) break;
 
             //情報入力
             graph.addRail(Integer.parseInt(input[0].trim()), Integer.parseInt(input[1].trim()), Double.parseDouble(input[2].trim()));
         }
 
-        //グラフ確認
-        //graph.printGraph();
+        //グラフ確認(デバック用)
+        graph.printGraph();
 
-        for (String s : searchLongRoute(graph)) {
-            System.out.println(s);
-        }
+        //解答出力
+        for (int s : searchLongRoute(graph)) System.out.println(s);
     }
 }
