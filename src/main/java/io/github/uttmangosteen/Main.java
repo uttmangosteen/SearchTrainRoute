@@ -23,8 +23,6 @@ public class Main {
             int stationID_1 = Integer.parseInt(input[0].trim());
             int stationID_2 = Integer.parseInt(input[1].trim());
             double distance = Double.parseDouble(input[2].trim());
-            graph.addStation(stationID_1);
-            graph.addStation(stationID_2);
             graph.addRail(stationID_1, stationID_2, distance);
         }
 

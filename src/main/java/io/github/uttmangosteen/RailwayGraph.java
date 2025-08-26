@@ -11,24 +11,31 @@ public class RailwayGraph {
         this.railList = railList;
     }
 
-    public void addStation(int stationID) {
+    void addStation(int stationID) {
         if (stationIDList.contains(stationID)) return;
         stationIDList.add(stationID);
         stationIDList.sort(Comparator.naturalOrder());
     }
 
     public void addRail(int stationID_1, int stationID_2, Double distance) {
+        addStation(stationID_1);
+        addStation(stationID_2);
         if (stationID_1 > stationID_2) {
             int t = stationID_1;
             stationID_1 = stationID_2;
             stationID_2 = t;
         }
+        for(Rail rail : railList){
+            if(rail.stationID_1 == stationID_1 && rail.stationID_2 == stationID_2){
+                if(rail.distance < distance) rail.distance = distance;
+                return;
+            }
+        }
         railList.add(new Rail(stationID_1, stationID_2, distance));
-        // stationID_1 → stationID_2 → distance の順でソート
+        // stationID_1 → stationID_2 の順でソート
         railList.sort(Comparator
                 .comparingInt((Rail r) -> r.stationID_1)
-                .thenComparingInt(r -> r.stationID_2)
-                .thenComparingDouble(r -> r.distance));
+                .thenComparingInt(r -> r.stationID_2));
     }
 
     //グラフの状況を見る(デバック用)
