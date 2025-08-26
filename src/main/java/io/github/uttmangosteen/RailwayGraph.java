@@ -25,17 +25,12 @@ public class RailwayGraph {
             stationID_1 = stationID_2;
             stationID_2 = t;
         }
-        for(Rail rail : railList){
-            if(rail.stationID_1 == stationID_1 && rail.stationID_2 == stationID_2){
-                if(rail.distance < distance) rail.distance = distance;
-                return;
-            }
-        }
         railList.add(new Rail(stationID_1, stationID_2, distance));
-        // stationID_1 → stationID_2 の順でソート
+        // stationID_1 → stationID_2 → distance の順でソート(意味はないが見やすさのため)
         railList.sort(Comparator
                 .comparingInt((Rail r) -> r.stationID_1)
-                .thenComparingInt(r -> r.stationID_2));
+                .thenComparingInt(r -> r.stationID_2)
+                .thenComparingDouble(r -> r.distance));
     }
 
     //グラフの状況を見る(デバック用)
