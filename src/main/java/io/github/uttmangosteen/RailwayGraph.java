@@ -23,7 +23,7 @@ public class RailwayGraph {
         Arrays.sort(stationIDs);
     }
 
-    public void addRail(int stationID_1, int stationID_2, Double distance) {
+    void addRail(int stationID_1, int stationID_2, Double distance) {
         addStation(stationID_1);
         addStation(stationID_2);
         if (stationID_1 > stationID_2) {
@@ -40,17 +40,6 @@ public class RailwayGraph {
                 .comparingInt((Rail r) -> r.stationID_1)
                 .thenComparingInt(r -> r.stationID_2)
                 .thenComparingDouble(r -> r.distance));
-    }
-
-    public Rail[] getEnabledRails(RailwayGraph graph, int currentStationID) {
-        if (rails == null) return new Rail[0];
-        List<Rail> enabledRails = new ArrayList<>();
-        for (Rail rail : rails) {
-            if (rail.stationID_1 == currentStationID || rail.stationID_2 == currentStationID) {
-                enabledRails.add(rail);
-            }
-        }
-        return enabledRails.toArray(new Rail[0]);
     }
 
     //グラフの状況を見る(デバック用)
