@@ -19,9 +19,11 @@ import java.util.*;
 ・始点と終点を同じ点にしても構いません
 
 =====実際に加えた制約=====
-・駅に対して線は0,1,2
 ・各路線は1度しか使えない
-・経路は連続
+・目的関数→総距離の最大化
+・各路線は1度しか使えない
+・駅の次数は0or1or2
+・全てのRailが連続
 */
 
 public class SearchLongRoute {
@@ -32,7 +34,6 @@ public class SearchLongRoute {
             return new int[0];
         }
         Rail[] rails = graph.railList.toArray(Rail[]::new);
-        int n = rails.length;
 
         // ソルバーを作成（整数計画法を使用）
         Loader.loadNativeLibraries();
@@ -42,38 +43,46 @@ public class SearchLongRoute {
             return new int[0];
         }
 
-        // 変数定義：各路線を使うかどうかのバイナリ変数
-        MPVariable[] useRails = new MPVariable[n];
-        for (int i = 0; i < n; i++) useRails[i] = solver.makeBoolVar("rail_" + i);
+        // 各路線を使うかどうかのバイナリ変数
+        MPVariable[] useRails = new MPVariable[rails.length];
+        for (int i = 0; i < rails.length; i++) useRails[i] = solver.makeBoolVar("rail_" + i);
 
         // 目的関数：総距離の最大化
         MPObjective objective = solver.objective();
-        for (int i = 0; i < n; i++) objective.setCoefficient(useRails[i], rails[i].distance);
+        for (int i = 0; i < rails.length; i++) objective.setCoefficient(useRails[i], rails[i].distance);
         objective.setMaximization();
 
-        // 駅ごとの制約：駅に接続する路線の使用本数は0,1,2
-        Map<Integer, List<Integer>> stationToRails = new HashMap<>();
-        for (int i = 0; i < n; i++) {
+        // 次数制約: 0～2
+        HashMap<Integer, ArrayList<Integer>> stationToRails = new HashMap<>();
+        for (int i = 0; i < rails.length; i++) {
             stationToRails.computeIfAbsent(rails[i].stationID_1, k -> new ArrayList<>()).add(i);
             stationToRails.computeIfAbsent(rails[i].stationID_2, k -> new ArrayList<>()).add(i);
         }
-        for (int station : stationToRails.keySet()) {
-            List<Integer> railsAtStation = stationToRails.get(station);
-            MPConstraint constraint = solver.makeConstraint(0, 2, "station_" + station);
-            for (int railIndex : railsAtStation) constraint.setCoefficient(useRails[railIndex], 1);
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : stationToRails.entrySet()) {
+            MPConstraint constraint = solver.makeConstraint(0, 2, "connect_" + entry.getKey());
+            for (int idx : entry.getValue()) constraint.setCoefficient(useRails[idx], 1);
         }
 
-        // ソルバー実行
+        //使用するRailが全て連結になる制約をここに足す
+
+        //計算
         MPSolver.ResultStatus resultStatus = solver.solve();
 
         if (resultStatus == MPSolver.ResultStatus.OPTIMAL || resultStatus == MPSolver.ResultStatus.FEASIBLE) {
 
-            // 使用された路線を特定(グラフは非連結な可能性あり)
+            // 使用された路線を特定
             ArrayList<Integer> usedRails = new ArrayList<>();
-            for (int i = 0; i < n; i++) if (useRails[i].solutionValue() > 0.5) usedRails.add(i);
+            for (int i = 0; i < rails.length; i++) if (useRails[i].solutionValue() > 0.5) usedRails.add(i);
 
             ArrayList<Rail> usedRailList = new ArrayList<>();
             for (int i : usedRails) usedRailList.add(rails[i]);
+
+            //デバック用
+            System.out.println("========使用路線========");
+            for (Rail rail : usedRailList)
+                System.out.println(rail.stationID_1 + " <-> " + rail.stationID_2 + " (距離: " + rail.distance + ")");
+            System.out.println("========================");
+
             return buildPath(usedRailList);
         }
         System.out.println("解が見つかりませんでした: " + resultStatus);
@@ -136,7 +145,7 @@ public class SearchLongRoute {
                 }
             }
             if (!found) {
-                System.out.println("経路が連結でありません");
+                System.out.println("RailListが連結でありません");
                 return new int[0];
             }
         }

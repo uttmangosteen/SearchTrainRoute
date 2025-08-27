@@ -35,14 +35,14 @@ public class RailwayGraph {
 
     //グラフの状況を見る(デバック用)
     public void printGraph() {
-        System.out.println("==========グラフの状況==========");
+        System.out.println("======グラフの状況======");
         System.out.println("駅ID一覧:");
         System.out.println(stationIDList.toString());
         System.out.println("路線一覧:");
         for (Rail rail : railList) {
             System.out.println(rail.stationID_1 + " <-> " + rail.stationID_2 + " (距離: " + rail.distance + ")");
         }
-        System.out.println("================================");
+        System.out.println("========================");
     }
 }
 
