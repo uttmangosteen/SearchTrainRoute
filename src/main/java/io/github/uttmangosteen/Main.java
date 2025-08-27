@@ -8,7 +8,7 @@ import static io.github.uttmangosteen.SearchLongRoute.searchLongRoute;
 public class Main {
     public static void main(String[] args) {
         //路線図の情報
-        RailwayGraph graph = new RailwayGraph(new ArrayList<>(), new ArrayList<>());
+        RailwayGraph graph = new RailwayGraph(new int[0], new Rail[0]);
 
         //標準入力読取↑の関数に格納(parseIntの例外処理一切してないのちょっと怖い)
         //今は、全要素入力後再度enterを入力してくれる想定
