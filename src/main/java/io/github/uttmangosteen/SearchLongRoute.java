@@ -2,7 +2,6 @@ package io.github.uttmangosteen;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 import java.util.stream.IntStream;
 
 /*
@@ -16,15 +15,12 @@ import java.util.stream.IntStream;
 */
 
 public class SearchLongRoute {
-    private static int[] stationIDs;
-    private static int nStation;
     private static Rail[] rails;
     private static int nRail;
 
     //最長経路置き場
     private static boolean[] longestPathRailFlags;
     private static double longestPathDistance;
-
 
     //元も距離が長くなるRailのListを探す
     public static int[] searchLongRoute(RailwayGraph graph) {
@@ -34,14 +30,11 @@ public class SearchLongRoute {
             System.out.println("グラフが小さいです");
             return new int[0];
         }
-        stationIDs = graph.stationIDs;
-        nStation = stationIDs.length;
-
         longestPathRailFlags = new boolean[nRail];
         longestPathDistance = 0;
 
         // すべての駅を開始点としてDFS試行
-        for (int startStationID : stationIDs) dfs(startStationID, startStationID, new HashSet<>(), new boolean[nRail]);
+        for (int startStationID : graph.stationIDs) dfs(startStationID, startStationID, new HashSet<>(), new boolean[nRail]);
 
         return buildPath(longestPathRailFlags);
     }
