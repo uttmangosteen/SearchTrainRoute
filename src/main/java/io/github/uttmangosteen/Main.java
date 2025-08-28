@@ -1,6 +1,5 @@
 package io.github.uttmangosteen;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import static io.github.uttmangosteen.SearchLongRoute.searchLongRoute;
