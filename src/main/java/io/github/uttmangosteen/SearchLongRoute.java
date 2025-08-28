@@ -2,6 +2,7 @@ package io.github.uttmangosteen;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.IntStream;
 
 /*
@@ -16,65 +17,118 @@ import java.util.stream.IntStream;
 
 public class SearchLongRoute {
     private static int[] stationIDs;
+    private static int nStation;
     private static Rail[] rails;
     private static int nRail;
 
+    //最長経路置き場
+    private static boolean[] longestPathRailFlags;
+    private static double longestPathDistance;
+
+
     //元も距離が長くなるRailのListを探す
     public static int[] searchLongRoute(RailwayGraph graph) {
-        stationIDs = graph.stationIDs;
         rails = graph.rails;
         nRail = rails.length;
-
         if (nRail == 0) {
             System.out.println("グラフが小さいです");
             return new int[0];
         }
+        stationIDs = graph.stationIDs;
+        nStation = stationIDs.length;
 
-        boolean[] longestPathRailList = new boolean[nRail];
-        double longestPathDistance = 0;
+        longestPathRailFlags = new boolean[nRail];
+        longestPathDistance = 0;
 
-        for (int startStationID : stationIDs) {
-            boolean[] unusedRailList = new boolean[nRail];
-            for (int i = 0; i < nRail; i++) unusedRailList[i] = true;
+        // すべての駅を開始点としてDFS試行
+        for (int startStationID : stationIDs) dfs(startStationID, startStationID, new HashSet<>(), new boolean[nRail]);
 
-            //全探索のコードを以下に加筆
-
-        }
-
-        return buildPath(longestPathRailList);
+        return buildPath(longestPathRailFlags);
     }
 
-    //行ける駅を探索
-    private static boolean[] getEnabledRails(int currentStationID, boolean[] unusedRailList) {
-        boolean[] enabledRails = new boolean[nRail];
-        for (int i = 0; i < nRail; i++)
-            enabledRails[i] = unusedRailList[i] && (rails[i].stationID_1 == currentStationID || rails[i].stationID_2 == currentStationID);
-        return enabledRails;
+    private static void dfs(int currentStationID, int startStationID, Set<Integer> usedStationList, boolean[] usedRailFlags) {
+        usedStationList.add(currentStationID);
+
+        // 現在の距離が最大なら上書き
+        double currentDistance = sumTotalDistance(usedRailFlags);
+        if (currentDistance > longestPathDistance) {
+            longestPathDistance = currentDistance;
+            longestPathRailFlags = usedRailFlags.clone();
+        }
+
+        boolean[] enabledRails = getEnabledRails(currentStationID, startStationID, usedStationList, usedRailFlags);
+
+        for (int i = 0; i < nRail; i++) {
+            if (!enabledRails[i]) continue;
+
+            Rail rail = rails[i];
+            int nextStationID = (rail.stationID_1 == currentStationID) ? rail.stationID_2 : rail.stationID_1;
+
+            // 次の駅がスタート駅の場合の処理
+            if (nextStationID == startStationID) {
+                usedRailFlags[i] = true;
+                double loopDistance = sumTotalDistance(usedRailFlags);
+                if (loopDistance > longestPathDistance) {
+                    longestPathDistance = loopDistance;
+                    longestPathRailFlags = usedRailFlags.clone();
+                }
+                usedRailFlags[i] = false; //railのバックトラック
+                continue;
+            }
+
+            // 通常のDFS（未訪問駅のみ）
+            if (!usedStationList.contains(nextStationID)) {
+                usedRailFlags[i] = true;
+                dfs(nextStationID, startStationID, usedStationList, usedRailFlags);
+                usedRailFlags[i] = false; //railのバックトラック
+            }
+        }
+
+        //駅のバックトラック
+        usedStationList.remove(currentStationID);
+    }
+
+
+    //選べるrailListを返す
+    private static boolean[] getEnabledRails(int currentStationID, int startStationID, Set<Integer> usedStationList, boolean[] usedRailFlags) {
+        boolean[] enableRailList = new boolean[nRail];
+        for (int i = 0; i < nRail; i++) {
+            if (usedRailFlags[i]) continue;
+            int nextStationID = rails[i].stationID_1 == currentStationID ? rails[i].stationID_2 :
+                    rails[i].stationID_2 == currentStationID ? rails[i].stationID_1 : 0;
+            if (nextStationID == 0) continue;
+            //最初の駅だけは行っても良い
+            if (nextStationID == startStationID) enableRailList[i] = true;
+            else if (!usedStationList.contains(nextStationID)) enableRailList[i] = true;
+        }
+        return enableRailList;
     }
 
     //経路の総距離を計算
-    private static double sumTotalDistance(boolean[] railList) {
-        return IntStream.range(0, nRail).filter(i -> railList[i]).mapToDouble(i -> rails[i].distance).sum();
+    private static double sumTotalDistance(boolean[] railFlags) {
+        double distance = 0;
+        for (int i = 0; i < nRail; i++) if (railFlags[i]) distance += rails[i].distance;
+        return distance;
     }
 
     //RailListからpathを求める
-    private static int[] buildPath(boolean[] railList) {
-        if (railList == null) return new int[0];
-        int nPath = (int) IntStream.range(0, nRail).filter(i -> railList[i]).count();
+    private static int[] buildPath(boolean[] railFlags) {
+        if (railFlags == null) return new int[0];
+        int nPath = (int) IntStream.range(0, nRail).filter(i -> railFlags[i]).count();
         if (nPath == 0) return new int[0];
 
         //デバック用
         System.out.println("======使用する路線======");
-        IntStream.range(0, nRail).filter(i -> railList[i]).forEach(i -> {
+        IntStream.range(0, nRail).filter(i -> railFlags[i]).forEach(i -> {
             Rail r = rails[i];
             System.out.println(r.stationID_1 + " <-> " + r.stationID_2 + " (距離: " + r.distance + ")");
         });
         System.out.println("========================");
 
-        //閉路の有無を確認
+        //端の駅の有無を確認
         Set<Integer> openStations = new HashSet<>();
-        for (int i = 0; i < railList.length; i++) {
-            if (!railList[i]) continue;
+        for (int i = 0; i < railFlags.length; i++) {
+            if (!railFlags[i]) continue;
             Rail rail = rails[i];
             if (!openStations.add(rail.stationID_1)) openStations.remove(rail.stationID_1);
             if (!openStations.add(rail.stationID_2)) openStations.remove(rail.stationID_2);
@@ -85,7 +139,7 @@ public class SearchLongRoute {
         //最初の駅を選択
         if (openStations.isEmpty()) {
             for (int i = 0; i < nRail; i++)
-                if (railList[i]) {
+                if (railFlags[i]) {
                     stations[0] = rails[i].stationID_1;
                     break;
                 }
@@ -100,7 +154,7 @@ public class SearchLongRoute {
         for (int i = 1; i <= nPath; i++) {
             boolean found = false;
             for (int j = 0; j < nRail; j++) {
-                if (!railList[j] || usedRailList[j]) continue;
+                if (!railFlags[j] || usedRailList[j]) continue;
                 Rail rail = rails[j];
                 if (rail.stationID_1 == stations[i - 1]) {
                     stations[i] = rail.stationID_2;
@@ -122,4 +176,5 @@ public class SearchLongRoute {
 
         return stations;
     }
+
 }
