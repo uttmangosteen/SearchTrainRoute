@@ -25,7 +25,7 @@ mvn clean package
 ## 実行
 Windows コマンドプロンプト：
 ```bat
-type input.txt | java -jar target\SearchTrainRoute-1.0-SNAPSHOT.jar
+java -jar target\SearchTrainRoute-1.0-SNAPSHOT.jar
 ```
 起動後にグラフを構成
 ```
