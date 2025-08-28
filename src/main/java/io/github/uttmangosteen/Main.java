@@ -5,6 +5,8 @@ import java.util.Scanner;
 import static io.github.uttmangosteen.SearchLongRoute.searchLongRoute;
 
 public class Main {
+    public static boolean DEBUG = false;
+
     public static void main(String[] args) {
         //路線図の情報
         RailwayGraph graph = new RailwayGraph(new int[0], new Rail[0]);
@@ -26,7 +28,7 @@ public class Main {
         }
 
         //グラフ確認(デバック用)
-        graph.printGraph();
+        if(DEBUG) graph.printGraph();
 
         //解答出力
         for (int s : searchLongRoute(graph)) System.out.println(s);

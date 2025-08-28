@@ -34,7 +34,8 @@ public class SearchLongRoute {
         longestPathDistance = 0;
 
         // すべての駅を開始点としてDFS試行
-        for (int startStationID : graph.stationIDs) dfs(startStationID, startStationID, new HashSet<>(), new boolean[nRail]);
+        for (int startStationID : graph.stationIDs)
+            dfs(startStationID, startStationID, new HashSet<>(), new boolean[nRail]);
 
         return buildPath(longestPathRailFlags);
     }
@@ -111,12 +112,14 @@ public class SearchLongRoute {
         if (nPath == 0) return new int[0];
 
         //デバック用
-        System.out.println("======使用する路線======");
-        IntStream.range(0, nRail).filter(i -> railFlags[i]).forEach(i -> {
-            Rail r = rails[i];
-            System.out.println(r.stationID_1 + " <-> " + r.stationID_2 + " (距離: " + r.distance + ")");
-        });
-        System.out.println("========================");
+        if (Main.DEBUG) {
+            System.out.println("======使用する路線======");
+            IntStream.range(0, nRail).filter(i -> railFlags[i]).forEach(i -> {
+                Rail r = rails[i];
+                System.out.println(r.stationID_1 + " <-> " + r.stationID_2 + " (距離: " + r.distance + ")");
+            });
+            System.out.println("========================");
+        }
 
         //端の駅の有無を確認
         Set<Integer> openStations = new HashSet<>();
